@@ -42,7 +42,7 @@ function init(){
 
   //Load model
   let loader = new THREE.GLTFLoader();
-  loader.load("./3d/scene.gltf", function(gltf){
+  loader.load("public/scene.gltf", function(gltf){
     scene.add(gltf.scene);
     house = gltf.scene.children[0];
     renderer.render(scene, camera);
