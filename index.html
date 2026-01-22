@@ -1,24 +1,234 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="./style.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700&display=swap" rel="stylesheet">
-    <title>Hometown</title>
-  </head>
-  <body>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon | Ivan Amael</title>
+    <style>
+        :root { --accent: #ffcc00; }
+        body { margin: 0; overflow: hidden; background-color: #b6e57c; font-family: 'Segoe UI', sans-serif; }
+
+        /* Pantalla de Carga */
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #b6e57c; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+        .spinner { border: 4px solid rgba(0,0,0,0.1); border-left-color: #111; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Interfaz de Usuario */
+        #ui {
+            position: absolute; top: 5%; width: 100%; text-align: center;
+            z-index: 10; pointer-events: none; padding: 0 20px; box-sizing: border-box;
+        }
+        h1 { margin: 0; font-size: clamp(2rem, 8vw, 4rem); color: #111; text-transform: uppercase; letter-spacing: -2px; }
+        .tag { background: #111; color: #fff; padding: 5px 15px; font-size: 0.9rem; border-radius: 20px; display: inline-block; margin-bottom: 10px; }
+        
+        /* Mensaje lateral derecho */
+        #click-msg {
+            position: absolute; 
+            top: 50%; 
+            right: 5%; /* Posición a la derecha */
+            transform: translateY(-50%);
+            background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: left; display: none; z-index: 20; width: 250px;
+            opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        /* Clase para mostrar el mensaje con animación */
+        #click-msg.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+        }
+        /* Estado inicial oculto para la animación */
+        #click-msg:not(.visible) {
+            transform: translateY(-50%) translateX(20px);
+        }
+
+        #click-msg p { font-size: 1.1rem; line-height: 1.5; color: #333; margin-bottom: 20px; }
+        #click-msg a { color: #111; font-weight: bold; text-decoration: none; border-bottom: 3px solid var(--accent); transition: border-color 0.2s; }
+        #click-msg a:hover { border-color: #111; }
+
+        /* Media Query para Móviles */
+        @media (max-width: 768px) {
+            #click-msg {
+                top: auto; bottom: 5%; right: 5%; left: 5%; width: auto;
+                transform: translateY(20px); text-align: center; padding: 20px;
+            }
+            #click-msg.visible { transform: translateY(0); }
+            #click-msg:not(.visible) { transform: translateY(20px); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <p id="load-text">Construyendo escena...</p>
+</div>
+
+<div id="ui">
+    <div class="tag">PRÓXIMAMENTE</div>
+    <h1>HOMETOWN</h1>
+    <p>Haz clic en la casa para interactuar</p>
+</div>
+
+<div id="click-msg">
+    <p>¡Hola! Estoy trabajando en proyectos increíbles.</p>
+    <a href="https://ivanayaelcurra.com.ar" target="_blank">Visita mi portfolio personal</a>
+</div>
+
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xb6e57c);
+    scene.fog = new THREE.Fog(0xb6e57c, 20, 60);
     
-    <h1>Hi! Welcome to my Website</h1>
-    <h2>Get some rest in my homepage</h2>
-    <div class="scene"></div>
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    // Cámara más baja y lejos para ver la casa más abajo
+    camera.position.set(18, 8, 18);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    document.body.appendChild(renderer.domElement);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+
+    const sunLight = new THREE.DirectionalLight(0xfffaed, 2);
+    sunLight.position.set(10, 20, 10);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.set(2048, 2048);
+    sunLight.shadow.camera.near = 0.5;
+    sunLight.shadow.camera.far = 50;
+    sunLight.shadow.bias = -0.0001;
+    scene.add(sunLight);
+
+    // Luz interior más sutil
+    const houseLight = new THREE.PointLight(0xffaa00, 0, 8, 2);
+    scene.add(houseLight);
+
+    const circleGeo = new THREE.CircleGeometry(10, 64);
+    const circleMat = new THREE.MeshStandardMaterial({ 
+        color: 0xa4d166, 
+        roughness: 0.8,
+        metalness: 0.1
+    });
+    const floor = new THREE.Mesh(circleGeo, circleMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    floor.position.y = 0.01;
+    scene.add(floor);
+
+    const loadingManager = new THREE.LoadingManager();
+    loadingManager.onLoad = () => {
+        const loaderEl = document.getElementById('loader');
+        loaderEl.style.opacity = '0';
+        setTimeout(() => loaderEl.remove(), 500);
+    };
+
+    let model = null;
+    const loader = new GLTFLoader(loadingManager);
     
-    <p>Tester: loading the house and putting the text in front and back.</p>
-    <script src="public/three.min.js"></script>
-    <script src="public/GLTFLoader.js"></script>
-    <script src="./main.js"></script>
-  </body>
+    loader.load('scene.gltf', (gltf) => {
+        model = gltf.scene;
+        model.traverse(n => { 
+            if(n.isMesh) { 
+                n.castShadow = true; 
+                n.receiveShadow = true;
+                if(n.material.map) n.material.map.anisotropy = 16;
+            }
+        });
+        
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        model.position.sub(center);
+        model.position.y = 0;
+        
+        houseLight.position.set(0, 2.5, 0); 
+        
+        scene.add(model);
+    });
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 1.5;
+    // Mirar un poco más abajo del centro para bajar visualmente la casa
+    controls.target.set(0, 1.5, 0); 
+    controls.minPolarAngle = Math.PI / 4; 
+    controls.maxPolarAngle = Math.PI / 2 - 0.1;
+    controls.minDistance = 10;
+    controls.maxDistance = 35;
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let isHouseActive = false; // Estado: ¿Está la casa activa?
+
+    window.addEventListener('click', (event) => {
+        // Solo detectar clic si el modelo ya cargó
+        if (!model) return;
+
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        // Detectar clic en la casa o el suelo
+        const intersects = raycaster.intersectObjects([model, floor], true);
+
+        if (intersects.length > 0) {
+            toggleHouseState();
+        }
+    });
+
+    function toggleHouseState() {
+        const msgElement = document.getElementById('click-msg');
+        isHouseActive = !isHouseActive; // Alternar estado
+
+        if (isHouseActive) {
+            // Activar: Encender luz, mostrar mensaje, parar rotación
+            houseLight.intensity = 10;
+            msgElement.classList.add('visible');
+            controls.autoRotate = false;
+        } else {
+            // Desactivar: Apagar luz, ocultar mensaje, reanudar rotación
+            houseLight.intensity = 0;
+            msgElement.classList.remove('visible');
+            controls.autoRotate = true;
+        }
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    animate();
+</script>
+</body>
 </html>
